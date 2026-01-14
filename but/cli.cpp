@@ -8,13 +8,14 @@ namespace but {
 
 static int parse_positive_int(std::string_view s, std::string_view what) {
   
-  int v = 0;
-  auto [ptr, err] = std::from_chars(s.data(), s.data() + s.size(), v);
+    int v = 0;
+    auto [ptr, err] = std::from_chars(s.data(), s.data() + s.size(), v);
 
-  if (err != std::errc{} || ptr != s.data() + s.size())
-    throw std::runtime_error(std::string(what) + ": not an integer");
-
-  return v;
+    if (err != std::errc{} || ptr != s.data() + s.size())
+        throw std::runtime_error(std::string(what) + ": not an integer");
+    if (v <= 0)
+        throw std::runtime_error(std::string(what) + ": must be > 0");
+    return v;
 }
 
 /*std::string usage(std::string_view exe) {
@@ -44,8 +45,12 @@ Config parse_args(int argc, char** argv) {
     }; 
 
     if (opt == "--help" || opt == "-h") {
-      throw std::runtime_error(usage(argv[0]));
-    } else if (opt == "--m") {
+      throw std::runtime_error(
+        "Use --m for first val size\n"
+        "Use --r for second val size\n"
+        "Use --out to define out.v\n"
+      );
+     } else if (opt == "--m") {
       conf.m_size = parse_positive_int(require(opt), "--m");
     } else if (opt == "--r") {
       conf.r_size = parse_positive_int(require(opt), "--r");
