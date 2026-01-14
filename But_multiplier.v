@@ -7,18 +7,19 @@ module  But_multiplier#(
 (
     input wire[m_size - 1:0]    M,
     input wire[r_size - 1:0]    R,
-    output wire [res_size: 0]   RES
+    output wire [res_size - 1: 0]   RES
 );
 
 
-
+    wire        [r_size:0] zero;
+    assign      zero    = 0;
     wire signed [m_size-1:0] M_signed = M;
     wire signed [m_size-1:0] M_neg = -M_signed;
     
-    wire signed [res_size:0] A = {{(r_size+1){M[m_size-1]}}, M};
-    wire signed [res_size:0] S = {{(r_size+1){M_neg[m_size-1]}}, M_neg}; 
+    wire signed [res_size:0] A = {M, zero};
+    wire signed [res_size:0] S = {M_neg, zero}; 
     
-    wire signed [res_size:0] P = {{(m_size){R[r_size-1]}}, R, 1'b0};
+    wire signed [res_size:0] P = {{(m_size){1'b0}}, R, 1'b0};
      
     wire signed [res_size:0] Pi_res [0:r_size];
 
@@ -26,7 +27,7 @@ module  But_multiplier#(
     
     genvar i;
     generate
-        for (i = 0; i < r_size; i = i + 1) begin : booth_stages
+        for (i = 0; i < r_size; i = i + 1) begin : but_stages
             wire signed [res_size:0] P_before_shift;
             
             assign P_before_shift = 
