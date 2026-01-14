@@ -18,15 +18,6 @@ static int parse_positive_int(std::string_view s, std::string_view what) {
     return v;
 }
 
-/*std::string usage(std::string_view exe) {
-  std::ostringstream o;
-  o << "Usage:\n"
-    << "  " << exe
-    << " --m <M_WIDTH> --r <R_WIDTH> --out <FILE>\n"
-    << "    [--res <RES_WIDTH>] [--name <MODULE>] [--signed|--unsigned]\n";
-  return o.str();
-}*/
-
 Config parse_args(int argc, char** argv) {
 
   if (argc <= 1)
