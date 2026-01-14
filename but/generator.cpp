@@ -16,7 +16,7 @@ std::string Generator::generate_verilog(const Config& conf) const {
 
   std::ostringstream o;
 
-  o << "module " << "But_multiplier" << "#(\n"
+  o << "module " << "But_multiplier" << m << 'x' << r << "#(\n"
     << "    parameter m_size = " << m << ",\n"
     << "    parameter r_size = " << r << ",\n"
     << "    parameter res_size = " << res << "\n"
