@@ -20,7 +20,8 @@ target_compile_options(but_core PRIVATE
 
 add_executable(but_gen
   main.cpp
+  tests/generator.cpp
 )
 
 target_link_libraries(but_gen PRIVATE but_core)
-
+target_compile_options(but_gen PRIVATE -Wall -Wextra -Wpedantic)
