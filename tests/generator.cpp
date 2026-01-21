@@ -1,60 +1,89 @@
-#include<fstream>
-#include<iostream>
-#include<sstream>
-#include<random>
-#include"but/config.hpp"
-#include<cmath>
-
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <random>
+#include "but/config.hpp"
+#include <cmath>
+#include <algorithm>
+#include <climits>
+#include <limits>
+#include <stdexcept>
 
 namespace but {
-    struct TestValues {
-        int m, r;
-        long long res;
 
-        TestValues(int _m, int _r) : m(_m), r(_r) {
-            res = m * r;
-        }
-    };
+struct TestValues {
+    int m, r;
+    long long res;
 
+    TestValues(int _m, int _r) : m(_m), r(_r), res(1LL * _m * _r) {}
+};
 
-    TestValues gen_one_test(std::mt19937 & rng,
-                            std::uniform_int_distribution<int64_t> & dist_m, 
-                            std::uniform_int_distribution<int64_t> & dist_r,
-                             std::string args_signs) {
-        int m = (args_signs[0] == '-' ? -1 : 1) * dist_m(rng);
-        int r = (args_signs[1] == '-' ? -1 : 1) * dist_r(rng);
+static TestValues gen_one_test(std::mt19937 &rng,
+                               std::uniform_int_distribution<int64_t> &dist_m,
+                               std::uniform_int_distribution<int64_t> &dist_r,
+                               const std::string &args_signs) {
+    int64_t m_mag = dist_m(rng);
+    int64_t r_mag = dist_r(rng);
 
-        return(TestValues(m, r));
+    int64_t m = (args_signs.size() > 0 && args_signs[0] == '-') ? -m_mag : m_mag;
+    int64_t r = (args_signs.size() > 1 && args_signs[1] == '-') ? -r_mag : r_mag;
+
+   
+    if (m < std::numeric_limits<int>::min() || m > std::numeric_limits<int>::max() ||
+        r < std::numeric_limits<int>::min() || r > std::numeric_limits<int>::max()) {
+        throw std::runtime_error("generated value doesn't fit into int");
     }
 
+    return TestValues((int)m, (int)r);
+}
 
-    static void gen_testbanch(const Config& conf, int seed = 42) {
-        std::mt19937 rng(seed);
-        int lo_m = 0;
-        int hi_m =  (1ll << (conf.m_size - 1)) - 1;
-        std::uniform_int_distribution<int64_t> dist_m(lo_m, hi_m);
-        int lo_r = 0;
-        int hi_r =  (1ll << (conf.r_size - 1)) - 1;
-        std::uniform_int_distribution<int64_t> dist_r(lo_r, hi_r);
-        const int number_of_tests = std::min(std::max((1ll << conf.res_size), 100), 1e8);
-        
-        
-        std::ofstream o(config.out_path, std::ios::binary);
-        if (!out)
-            throw std::runtime_error("cannot open output file");
+static void gen_testbanch(const Config &conf, int seed = 42) {
+    std::mt19937 rng(seed);
 
-        out << verilog;
-    }      
+    
+    if (conf.m_size < 2 || conf.r_size < 2) {
+        throw std::runtime_error("m_size and r_size must be >= 2 for signed ranges");
+    }
 
-        o << "module testbanch#(\n"
+    const int64_t lo_m = 0;
+    const int64_t hi_m = (conf.m_size >= 63) ? (std::numeric_limits<int64_t>::max)()
+                                             : ((1LL << (conf.m_size - 1)) - 1);
+    std::uniform_int_distribution<int64_t> dist_m(lo_m, hi_m);
+
+    const int64_t lo_r = 0;
+    const int64_t hi_r = (conf.r_size >= 63) ? (std::numeric_limits<int64_t>::max)()
+                                             : ((1LL << (conf.r_size - 1)) - 1);
+    std::uniform_int_distribution<int64_t> dist_r(lo_r, hi_r);
+
+    
+    long long base;
+    if (conf.res_size >= 62) {
+        base = std::numeric_limits<long long>::max();
+    } else if (conf.res_size < 0) {
+        base = 100; // на всякий случай
+    } else {
+        base = 1LL << conf.res_size;
+    }
+
+    long long nll = std::min(std::max(base, 100LL), 100000000LL);
+    int number_of_tests = (nll > INT_MAX) ? INT_MAX : (int)nll;
+
+    std::string test_path = conf.module_name + "_testbanch.v";
+    std::ofstream testfile_out(test_path, std::ios::binary);
+    if (!testfile_out) {
+        throw std::runtime_error("cannot open output file");
+    }
+
+    testfile_out
+        << "module testbanch#(\n"
         << "  parameter m_size   = " << conf.m_size << ",\n"
         << "  parameter r_size   = " << conf.r_size << ",\n"
         << "  parameter res_size = m_size + r_size\n"
         << ")();\n\n"
-        << "  reg signed [m_size-1:0]    M;\n"
-        << "  reg signed [r_size-1:0]    R;\n"
-        << "  wire signed [res_size-1:0] RES;\n\n"
-        << "  But_multiplier exmp(\n"
+        << "  reg  signed [m_size-1:0]    M;\n"
+        << "  reg  signed [r_size-1:0]    R;\n"
+        << "  wire signed [res_size-1:0]  RES;\n\n"
+        << "  " << conf.module_name << " exmp(\n"
         << "    .M(M),\n"
         << "    .R(R),\n"
         << "    .RES(RES)\n"
@@ -79,27 +108,27 @@ namespace but {
         << "    $dumpvars(0, testbanch);\n"
         << "    #1;\n";
 
-        
+    
+    const std::string test_mask[4] = {"++", "--", "+-", "-+"};
 
-        ///ручные тесты для сложных ситуаций
+   
+    int blocks = number_of_tests / 4;
+    for (int i = 0; i < blocks; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            TestValues tv = gen_one_test(rng, dist_m, dist_r, test_mask[j]);
 
-        ///динамически изменяемое число unit-тестов
-        std::string test_mask[4] = {"++", "--", "+-", "-+"};
-
-        for (int i = 0; i < number_of_tests / 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                TestValues tv = gen_one_test(rng, dist_m, dist_r, test_mask[j]);
-                o << "        test(" << tv.m << ", " << tv.r << ", " << tv.res << ")\n" 
-                << "      #1;";
-            }
+            
+            testfile_out
+                << "    test(" << tv.m << ", " << tv.r << ", " << tv.res << ");\n"
+                << "    #1;\n";
         }
+    }
 
-         o << "    $display(\"PASS %s\", `__FILE__);\n"
+    testfile_out
+        << "    $display(\"PASS %s\", `__FILE__);\n"
         << "    $finish;\n"
         << "  end\n\n"
         << "endmodule\n";
-
-        
-
 }
 
+}
