@@ -38,7 +38,7 @@ static TestValues gen_one_test(std::mt19937 &rng,
 }
 
 static void gen_testbanch(const Config &conf) {
-    const std::string test_path = conf.module_name + "_testbanch.v";
+    const std::string test_path = conf.out_dir + '/' + conf.module_name + "_testbanch.v";
 
     try {
         std::mt19937 rng(conf.test_seed);

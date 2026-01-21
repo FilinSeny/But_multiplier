@@ -12,6 +12,7 @@ namespace but
 
         std::string module_name = "But_multiplier";
         std::string out_path;
+        std::string out_dir = "./results";
 
         bool        need_testfile   = false;
         int         test_seed       = 42;

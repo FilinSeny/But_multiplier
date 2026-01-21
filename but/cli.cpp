@@ -44,10 +44,11 @@ namespace but
             if (opt == "--help" || opt == "-h")
             {
                 throw std::runtime_error(
-                    "Use --m for first val size\n"
+                    "Use --m for first LOL val size\n"
                     "Use --r for second val size\n"
                     "Use --out to define out.v\n"
-                    "Use --test to generate testbanch, second val must be seed\n");
+                    "Use --test to generate testbanch, second val must be seed\n"
+                    "Use --path to ");
             }
             else if (opt == "--m")
             {
@@ -60,6 +61,9 @@ namespace but
             else if (opt == "--out")
             {
                 conf.out_path = std::string(require(opt));
+            }
+            else if (opt == "--path") {
+                conf.out_dir = std::string(require(opt));
             }
             else if (opt == "--test") {
                 conf.need_testfile = true;
@@ -79,7 +83,7 @@ namespace but
                 << conf.r_size;
 
             conf.module_name = oss.str();
-            conf.out_path = conf.module_name + ".v";
+            conf.out_path = conf.out_dir + "/" + conf.module_name + ".v";
             ///throw std::runtime_error("missing required option --out");
 
         }
