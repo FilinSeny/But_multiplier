@@ -13,10 +13,13 @@ module  But_multiplier#(
 
     wire        [r_size:0] zero;
     assign      zero    = 0;
-    wire signed [m_size-1:0] M_signed = M;
-    wire signed [m_size-1:0] M_neg = -M_signed;
+    wire signed [m_size-1:0] M_s;
+    assign M_s = $signed(M);      
+
+    wire signed [m_size-1:0] M_neg;
+    assign M_neg = -M_s;
     
-    wire signed [res_size:0] A = {M, zero};
+    wire signed [res_size:0] A = {M_s, zero};
     wire signed [res_size:0] S = {M_neg, zero}; 
     
     wire signed [res_size:0] P = {{(m_size){1'b0}}, R, 1'b0};
