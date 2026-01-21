@@ -1,5 +1,6 @@
 #include "but/cli.cpp"
 #include "but/generator.hpp"
+#include "tests/generator.cpp"
 #include <fstream>
 #include <iostream>
 
@@ -15,6 +16,7 @@ int main(int argc, char **argv)
 
         std::string verilog = gen.generate_verilog(config);
 
+
         std::ofstream out(config.out_path, std::ios::binary);
         if (!out)
             throw std::runtime_error("cannot open output file");
@@ -22,6 +24,10 @@ int main(int argc, char **argv)
         out << verilog;
         if (!out)
             throw std::runtime_error("write failed");
+
+        if (config.need_testfile) {
+            but::gen_testbanch(config);
+        }
 
         return 0;
     }
