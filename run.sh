@@ -8,15 +8,15 @@ IVERILOG_FLAGS="-g2012"
 usage() {
   cat <<'EOF'
 Usage:
-  ./run_sim.sh --syn -- <but_gen flags...>
+  ./run.sh --syn -- <but_gen flags...>
 
     Runs generator (./build/but_gen) with given flags.
     IMPORTANT: pass generator flags after "--".
 
     Example:
-      ./run_sim.sh --syn -- --m 2 --r 2 --test 123 --path results/But_multiplier2x2
+      ./run.sh --syn -- --m 2 --r 2 --test 123 --path results/But_multiplier2x2
 
-  ./run_sim.sh --run_tests <ModuleName>
+  ./run.sh --run_tests <ModuleName>
 
     Compiles and runs testbench for the given module name.
     Expects files in:
@@ -24,7 +24,7 @@ Usage:
       results/<ModuleName>/<ModuleName>_testbanch.v
 
     Example:
-      ./run_sim.sh --run_tests But_multiplier2x2
+      ./run.sh --run_tests But_multiplier2x2
 
 EOF
 }
@@ -49,7 +49,7 @@ shift
 
 case "$MODE" in
   --syn)
-    # Require "--" separator to avoid ambiguity
+   
     if [ $# -lt 1 ] || [ "${1:-}" != "--" ]; then
       die "expected '--' after --syn. Example: ./run_sim.sh --syn -- --m 2 --r 2 --path results"
     fi

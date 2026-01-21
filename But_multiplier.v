@@ -13,25 +13,25 @@ module  But_multiplier#(
 
     wire        [r_size:0] zero;
     assign      zero    = 0;
-    wire signed [m_size-1:0] M_s;
-    assign M_s = $signed(M);      
+    wire signed [m_size:0] M_s;
+    assign M_s = {M[m_size - 1], $signed(M)};
 
-    wire signed [m_size-1:0] M_neg;
+    wire signed [m_size:0] M_neg;
     assign M_neg = -M_s;
     
-    wire signed [res_size:0] A = {M_s, zero};
-    wire signed [res_size:0] S = {M_neg, zero}; 
+    wire signed [res_size + 1:0] A = {M_s, zero};
+    wire signed [res_size + 1:0] S = {M_neg, zero};
     
-    wire signed [res_size:0] P = {{(m_size){1'b0}}, R, 1'b0};
+    wire signed [res_size + 1:0] P = {1'b0, {(m_size){1'b0}}, R, 1'b0};
      
-    wire signed [res_size:0] Pi_res [0:r_size];
+    wire signed [res_size + 1:0] Pi_res [0:r_size];
 
     assign Pi_res[0] = P;
     
     genvar i;
     generate
         for (i = 0; i < r_size; i = i + 1) begin : but_stages
-            wire signed [res_size:0] P_before_shift;
+            wire signed [res_size + 1:0] P_before_shift;
             
             assign P_before_shift = 
                 (Pi_res[i][1:0] == 2'b01) ? Pi_res[i] + A :

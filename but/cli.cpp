@@ -17,6 +17,8 @@ namespace but
             throw std::runtime_error(std::string(what) + ": not an integer");
         if (v <= 0)
             throw std::runtime_error(std::string(what) + ": must be > 0");
+        if (v > 32 && what != "--seed")
+            throw std::runtime_error(std::string(what) + ": must be <= 32");
         return v;
     }
 
@@ -44,7 +46,7 @@ namespace but
             if (opt == "--help" || opt == "-h")
             {
                 throw std::runtime_error(
-                    "Use --m for first LOL val size\n"
+                    "Use --m for first val size\n"
                     "Use --r for second val size\n"
                     "Use --out to define out.v\n"
                     "Use --test to generate testbanch, second val must be seed\n"
@@ -67,7 +69,7 @@ namespace but
             }
             else if (opt == "--test") {
                 conf.need_testfile = true;
-                conf.test_seed = parse_positive_int(require(opt), "--seed");
+                conf.test_seed =  parse_positive_int(require(opt), "--seed");
             }
             else
             {

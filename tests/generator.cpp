@@ -37,6 +37,19 @@ static TestValues gen_one_test(std::mt19937 &rng,
     return TestValues((int)m, (int)r);
 }
 
+static int prepare_arg(int x, int size) {
+    const int32_t mask = (1 << size) - 1;      // маска младших size бит
+    x &= mask;                                 // отбросить старшие биты
+
+    const int32_t sign_bit = 1 << (size - 1);  // знаковый бит
+
+    if (x & sign_bit) {
+        x |= ~mask;                            // расширить знак
+    }
+
+    return x;
+}
+
 static void gen_testbanch(const Config &conf) {
     const std::string test_path = conf.out_dir + '/' + conf.module_name + "_testbanch.v";
 
@@ -107,6 +120,23 @@ static void gen_testbanch(const Config &conf) {
             << "    $dumpvars(0, testbanch);\n"
             << "    #1;\n";
 
+        
+        int test_m(1), test_r;
+        for (unsigned int i = 0; i < conf.m_size; ++i) {
+            test_r = 1;
+            for (unsigned int j = 0; j < conf.r_size; ++j) {
+                long long test_res = prepare_arg(test_m, conf.m_size)* prepare_arg(test_r, conf.r_size);
+
+                testfile_out
+                    << "    test(" << prepare_arg(test_m, conf.m_size) << ", " << prepare_arg(test_r, conf.r_size) 
+                    << ", " << test_res << ");\n"
+                    << "    #1;\n";
+
+                test_r <<= 1;
+            }
+            test_m <<= 1;
+        }        
+std::cout << "LOL\n";
         const std::string test_mask[4] = {"++", "--", "+-", "-+"};
         int blocks = number_of_tests / 4;
 
@@ -115,7 +145,9 @@ static void gen_testbanch(const Config &conf) {
                 TestValues tv = gen_one_test(rng, dist_m, dist_r, test_mask[j]);
 
                 testfile_out
-                    << "    test(" << tv.m << ", " << tv.r << ", " << tv.res << ");\n"
+                    << "    test(" << prepare_arg(tv.m, conf.m_size) << ", " 
+                    << prepare_arg(tv.r, conf.r_size) << ", " 
+                    << prepare_arg(tv.m, conf.m_size) * prepare_arg(tv.r, conf.r_size) << ");\n"
                     << "    #1;\n";
             }
         }
