@@ -79,7 +79,7 @@ namespace but
                 << conf.r_size;
 
             conf.module_name = oss.str();
-            conf.out_path = conf.module_name + "/v";
+            conf.out_path = conf.module_name + ".v";
             ///throw std::runtime_error("missing required option --out");
 
         }
