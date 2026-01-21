@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
         std::ofstream out(config.out_path, std::ios::binary);
         if (!out)
-            throw std::runtime_error("cannot open output file");
+            throw std::runtime_error(config.out_path + " cannot open output file for mulplier");
 
         out << verilog;
         if (!out)
@@ -28,6 +28,8 @@ int main(int argc, char **argv)
         if (config.need_testfile) {
             but::gen_testbanch(config);
         }
+
+        std::cout << config.module_name << " has sucsesfull generated\n";
 
         return 0;
     }

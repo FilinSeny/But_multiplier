@@ -58,9 +58,10 @@ static void gen_testbanch(const Config &conf) {
         std::uniform_int_distribution<int64_t> dist_r(lo_r, hi_r);
 
         long long base;
-        if (conf.res_size >= 62) base = std::numeric_limits<long long>::max();
-        else if (conf.res_size < 0) base = 100;
-        else base = 1LL << conf.res_size;
+        if (conf.res_size >= 62) 
+            base = std::numeric_limits<long long>::max();
+        else 
+            base = 1LL << conf.res_size;
 
         long long nll = std::min(std::max(base, 100LL), 100000000LL);
         int number_of_tests = (nll > INT_MAX) ? INT_MAX : (int)nll;
